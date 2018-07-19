@@ -1,22 +1,46 @@
 import requests
 import bs4 as bs
 # import selenium
-import sys
+
 import smtplib
+import sqlite3
+import datetime
 
-# Dictionary mapping amazon URL to current lowest price
-# Todo - Replace dictionary with SQL database
+# Database mapping amazon URL to current lowest price
 #
-#        WARES
-#  -- URL --- PRICE --
-# |        |          |
-# |        |          |
-# |        |          |
-# ---------------------
+#         TRACKED ITEMS
+#
+# --- URL --- PRICE -- ---EMAIL---
+# |        |          |          |
+# |        |          |          |
+# |        |          |          |
+# ---------------------------------
 # Updated every X hours/days/whatever
-url_to_price = {}
 
-def get_price(url : 'an amazon url') -> 'double price':
+def update_and_notify():
+    '''
+    For each URL in database:
+        get the price
+        if it is different, update the dictionary
+            if it is lower than it was before, email the user
+    :return: None
+    '''
+    url_price_email_list = read_database()
+
+    for dict in url_price_email_list:
+        url = dict['url']
+        old_price = dict['price']
+        email = dict['email']
+
+        new_price = get_price(url)
+
+        if old_price != new_price:
+            update_table(url, new_price)
+            if new_price < old_price:
+                notify(url, new_price, email)
+
+
+def get_price(url : 'String url') -> 'double price':
     '''
     Scrapes and returns the price of a given amazon url
     :param url: String
@@ -33,9 +57,9 @@ def get_price(url : 'an amazon url') -> 'double price':
     # Get the relevant information ($ amount) from the price tag
     price = price_tag[price_tag.index('$'):price_tag.index('</')]
 
-    # Handle range vs flat
+    # Handle ranged vs flat
     if '-' in price:
-        # Range case : manipulate string to find low and high ends
+        # Ranged price case : manipulate string to find low and high ends
         low_end = float(price[1:price.index(' ')])
         high_end = float(price[price.index('- $') + 3:])
         return low_end, high_end
@@ -44,52 +68,46 @@ def get_price(url : 'an amazon url') -> 'double price':
         price = float(price[1:])
         return price
 
-def update_and_notify():
+def read_database():
     '''
-    For each URL in dictionary:
-        get the price
-        if it is different, update the dictionary
-            if it is lower than it was before, email the user
-    :return: None
-    '''
-    url_to_price = get_url_dict()
-
-    for url in url_to_price:
-        old_price = url_to_price[url]
-        new_price = get_price(url)
-
-        if old_price != new_price:
-            update_table(url, new_price)
-            if new_price < old_price:
-                notify(url, new_price)
-
-
-def get_url_dict():
-    '''
-    Reads from a database and returns mapping from URL to last saved price
-    :return: dictionary {url -> price}
+    Reads from a database and returns list of dictionaries]
+    :return: list of dictionaries[ {url : exampleURL, price : examplePrice, email : exampleEmail} ]
     '''
     pass
 
 def update_table(url : 'amazon url', price : 'double price') -> None :
     '''
-    Updates database with new mapping of URL -> price
+    Updates database with the new price where url column = url parameter
     :param url: String url
     :param price: float price
     :return: None
     '''
     pass
 
-def notify(url : 'amazon url', price : 'double price') -> None :
+def notify(url : 'String url', price : 'double price', email : 'String email') -> None :
     '''
-    Email with message 'Item at URL just dropped to PRICE dollars'
+    Email EMAIL with message 'Item at URL just dropped to PRICE dollars at XX:XX time on XX-XX-XXXX day'
+    :return: None
+    '''
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+
+def track_url(url : 'String url', email : 'String email'):
+    '''
+    Adds a new row to the database, or if user is already tracking, show error message
+    :param url: String url
     :return: None
     '''
     pass
 
+def unsubscribe(email : 'String email'):
+    '''
+    Drops all rows where email column = email parameter
+    :param email: String email
+    :return: None
+    '''
+
 def main():
-    pass
+    update_and_notify()
 
 if __name__ == '__main__':
     main()
-
