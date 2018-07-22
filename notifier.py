@@ -66,7 +66,7 @@ def get_price_and_item(url : 'String url') -> 'double price, String item_name':
     '''
     Scrapes and returns the price of a given amazon url
     :param url: String
-    :return: Float
+    :return: Float, String
     '''
     # Set up web scraper
     page = requests.get(url)
@@ -112,18 +112,21 @@ def read_database() -> '{}[]' :
 def update_table(url : 'amazon url', price : 'double price') -> None :
     '''
     Updates database with the new price where url column = url parameter
-    :param url: String url
-    :param price: float price
+    :param url: String
+    :param price: Float
     :return: None
     '''
     nonlocal c, conn
     conn.commit()
     pass
 
+'''
+Able to be called by client
+'''
 def track_url(url : 'String url', email : 'String email') -> None:
     '''
     Adds a new row to the database, or if user is already tracking, show error message
-    :param url: String url
+    :param url: String
     :return: None
     '''
     nonlocal c, conn
@@ -133,11 +136,19 @@ def track_url(url : 'String url', email : 'String email') -> None:
 def unsubscribe(email : 'String email') -> None:
     '''
     Drops all rows where email column = email parameter
-    :param email: String email
+    :param email: String
     :return: None
     '''
     nonlocal c, conn
     conn.commit()
+    pass
+
+def get_urls(email : 'String email') -> 'String[]':
+    '''
+    Returns a list of URLs this email account is following
+    :param email: String
+    :return: String[]
+    '''
     pass
 
 '''
@@ -151,7 +162,7 @@ def notify(url : 'String url', name : 'String name', price : 'double price', ema
     # Format date and time for the email message
     date = datetime.datetime.now().isoformat()[:10]
     time = datetime.datetime.now().isoformat()[11:19]
-    content = 'Item '  + name + ' at ' + url + ' just dropped to $' + str(price) + 'at ' + time + ' on ' + date
+    content = ' '.join(['Item', name, 'at', url, 'just dropped to $', str(price), 'at', time, 'on', date])
 
     # Initialize SMTP and login to Gmail
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -170,8 +181,12 @@ def notify(url : 'String url', name : 'String name', price : 'double price', ema
     server.send_message(msg)
     server.quit()
 
-# Returns version of string with spaces and line breaks removed
 def strip(str : 'String str') -> 'String stripped_string':
+    '''
+    Returns a copy of the String argument with white space and line breaks removed
+    :param str: String
+    :return: String
+    '''
     stripped = str
     for char in stripped:
         if char in '\n ':
