@@ -21,15 +21,6 @@ import datetime
 # Updated every X hours/days/whatever
 
 '''
-Scalability
-    This approach introduces scalability issues because we are repetitively writing the same URL + price combination
-    to the database for each user that wants to track it.
-    
-    For scalability and memory efficiency, make URL unique and in the email column have a list of emails the program 
-    should notify when the price of the item updates.
-'''
-
-'''
 Main function
 '''
 def update_and_notify() -> None:
@@ -40,9 +31,6 @@ def update_and_notify() -> None:
             if it is lower than it was before, email the user
     :return: None
     '''
-    conn = sqlite3.connect('tracked_items.db')
-    c = conn.cursor()
-
     url_price_email_list = read_database()
 
     for dict in url_price_email_list:
@@ -59,9 +47,6 @@ def update_and_notify() -> None:
             if new_price < old_price:
                 notify(url, item_name, new_price, email)
 
-    conn.close()
-    c.close()
-
 def get_price_and_item(url : 'String url') -> 'double price, String item_name':
     '''
     Scrapes and returns the price of a given amazon url
@@ -74,7 +59,7 @@ def get_price_and_item(url : 'String url') -> 'double price, String item_name':
     soup = bs.BeautifulSoup(html, 'html.parser')
 
     # Price tags on amazon are marked with id of #priceblock_ourprice
-    price_tag = soup.find(id = 'priceblock_ourprice').text
+    price_tag = str(soup.find(id = 'priceblock_ourprice'))
 
     # Item titles are marked with id of #productTitle
     # Strip product title text of white space and line breaks
@@ -84,41 +69,48 @@ def get_price_and_item(url : 'String url') -> 'double price, String item_name':
     price = price_tag[price_tag.index('$'):price_tag.index('</')]
 
     # Handle ranged vs flat
-
-    # TODO - Change implementation so we can ALWAYS get flat
     if '-' in price:
         # Ranged price case : manipulate string to find low and high ends
         low_end = float(price[1:price.index(' ')])
         high_end = float(price[price.index('- $') + 3:])
-        return item_name, low_end, high_end
+        return (low_end + high_end) // 2, item_name
     else:
         # Flat price case : Remove dollar sign and return the number as a float
         price = float(price[1:])
         return price, item_name
 
+def get_price(url : 'String url') -> 'double price':
+    return get_price_and_item(url)[0]
+
 '''
 Database handling
 '''
-
 def read_database() -> '{}[]' :
     '''
     Reads from a database and returns list of dictionaries]
     :return: list of dictionaries[ {url : exampleURL, price : examplePrice, email : exampleEmail} ]
     '''
-    nonlocal c, conn
-    conn.commit()
-    pass
+    database_list = []
+    conn = sqlite3.connect('tracked_items.db')
+    c = conn.cursor()
+    for row in c.execute('SELECT * FROM items'):
+        database_list.append({'url' : row[0], 'price' : row[1], 'email' : row[2]})
+    conn.close()
+    return database_list
 
 def update_table(url : 'amazon url', price : 'double price') -> None :
     '''
     Updates database with the new price where url column = url parameter
     :param url: String
-    :param price: Float
+    :param price: double
     :return: None
     '''
-    nonlocal c, conn
+    conn = sqlite3.connect('tracked_items.db')
+    c = conn.cursor()
+    c.execute('UPDATE items SET price = ? WHERE url = ?', (price, url))
     conn.commit()
-    pass
+    conn.close()
+    c.close()
 
 '''
 Able to be called by client
@@ -129,9 +121,13 @@ def track_url(url : 'String url', email : 'String email') -> None:
     :param url: String
     :return: None
     '''
-    nonlocal c, conn
+    conn = sqlite3.connect('tracked_items.db')
+    c = conn.cursor()
+    price = get_price(url)
+    c.execute('CREATE TABLE IF NOT EXISTS items (url text, price float, email text)')
+    c.execute('INSERT INTO items (url, price, email) VALUES (?, ? ,?)', (url, price, email))
     conn.commit()
-    pass
+    conn.close()
 
 def unsubscribe(email : 'String email') -> None:
     '''
@@ -139,9 +135,11 @@ def unsubscribe(email : 'String email') -> None:
     :param email: String
     :return: None
     '''
-    nonlocal c, conn
+    conn = sqlite3.connect('tracked_items.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM items WHERE email = ?', (email, ))
     conn.commit()
-    pass
+    conn.close()
 
 def get_urls(email : 'String email') -> 'String[]':
     '''
@@ -149,7 +147,11 @@ def get_urls(email : 'String email') -> 'String[]':
     :param email: String
     :return: String[]
     '''
-    pass
+    conn = sqlite3.connect('tracked_items.db')
+    c = conn.cursor()
+    c.execute('SELECT url FROM items WHERE email = ?', (email,))
+    conn.close()
+    return c.fetchall()
 
 '''
 Notify functions

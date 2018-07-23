@@ -6,35 +6,63 @@
     <title>Amazon Price Drop Notifier Web App</title>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <link rel= "stylesheet" href = "css/bootstrap.css">
+    <link rel = "stylesheet" href = "css/main.css">
 </head>
 
 <body>
-    <div class = "container-fluid">
-        <div id = "track_url" >
-            <form action = "/track_url" method = "post">
-                Track an Amazon URL!
-                <br>
-                <input title = "url" type = "text" name = "url">
-                <br>
-                Email
-                <br>
-                <input title = "email" type = "text" name = "email">
-                <br>
-                <input type = "submit">
-            </form>
+
+    <div class = "container">
+
+        <div class = "row">
+            <div class = "col-sm-12">
+                <h1 align = "center">
+                    Amazon Price Drop Notifier
+                </h1>
+            </div>
         </div>
 
-        <div id = "unsubscribe">
-            <form action = "/unsubscribe" method = "post">
-                Unsubscribe your email from this mailing list
-                <br>
-                <input title = "email" type= "text" name = "email">
-                <br>
-                <input type = "submit">
-            </form>
-        </div>
+            <p align = "center">
+                Track an item you want to buy on Amazon by using the form below.
+                You'll receive an email when the price goes down.
+            </p>
     </div>
 
+    <div class = "container-fluid">
+        <div class = "row">
+            <div class = col-sm-6 id = "track_url" >
+                <form action = "/track_url" method = "post" align = "center" autocomplete = off>
+                    <h4>
+                        <i>Track an Amazon URL</i>
+                    </h4>
+                    URL
+                    <br>
+                    <input title = "url" type = "text" name = "url">
+                    <br>
+                    Email
+                    <br>
+                    <input title = "email" type = "text" name = "email">
+                    <br>
+                    <br>
+                    <input type = "submit">
+                </form>
+            </div>
+
+            <div class = col-sm-6 id = "unsubscribe">
+                <form action = "/unsubscribe" method = "post" align = "center" autocomplete = off>
+                    <h4>
+                        <i>Remove your email from this mailing list</i>
+                    </h4>
+                    Email
+                    <br>
+                    <input title = "email" type= "text" name = "email">
+                    <br>
+                    <br>
+                    <input type = "submit">
+                </form>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
