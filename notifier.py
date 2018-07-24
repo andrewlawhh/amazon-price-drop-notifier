@@ -1,29 +1,19 @@
 import requests
 import bs4 as bs
-# import selenium
 
 import smtplib
 from email.message import EmailMessage
 from credentials import *
 
 import sqlite3
-import datetime
 
-# Database mapping amazon URL to current lowest price
-#
-#         TRACKED ITEMS
-#
-# --- URL --- PRICE -- ---EMAIL---
-# |        |          |          |
-# |        |          |          |
-# |        |          |          |
-# ---------------------------------
-# Updated every X hours/days/whatever
+import datetime
+import time
 
 '''
 Main function
 '''
-def update_and_notify() -> None:
+def update_and_notify() -> None :
     '''
     For each URL in database:
         get the price
@@ -31,23 +21,27 @@ def update_and_notify() -> None:
             if it is lower than it was before, email the user
     :return: None
     '''
-    url_price_email_list = read_database()
+    while True:
+        url_price_email_list = read_database()
 
-    for dict in url_price_email_list:
-        url = dict['url']
-        old_price = dict['price']
-        email = dict['email']
+        for dict in url_price_email_list:
+            url = dict['url']
+            old_price = dict['price']
+            email = dict['email']
 
-        price_and_item = get_price_and_item(url)
-        new_price = price_and_item[0]
-        item_name = price_and_item[1]
+            price_and_item = get_price_and_item(url)
+            new_price = price_and_item[0]
+            item_name = price_and_item[1]
 
-        if old_price != new_price:
-            update_table(url, new_price)
-            if new_price < old_price:
-                notify(url, item_name, new_price, email)
+            if old_price != new_price:
+                update_table(url, new_price)
+                if new_price < old_price:
+                    notify(url, item_name, new_price, email)
 
-def get_price_and_item(url : 'String url') -> 'double price, String item_name':
+        # Run every four hours
+        time.sleep(14400)
+
+def get_price_and_item(url : 'String url') -> 'double price, String item_name' :
     '''
     Scrapes and returns the price of a given amazon url
     :param url: String
@@ -79,8 +73,11 @@ def get_price_and_item(url : 'String url') -> 'double price, String item_name':
         price = float(price[1:])
         return price, item_name
 
-def get_price(url : 'String url') -> 'double price':
+def get_price(url : 'String url') -> 'double price' :
     return get_price_and_item(url)[0]
+
+def get_name(url : 'String url') -> 'String name' :
+    return get_price_and_item(url)[1]
 
 '''
 Database handling
@@ -113,50 +110,9 @@ def update_table(url : 'amazon url', price : 'double price') -> None :
     c.close()
 
 '''
-Able to be called by client
-'''
-def track_url(url : 'String url', email : 'String email') -> None:
-    '''
-    Adds a new row to the database, or if user is already tracking, show error message
-    :param url: String
-    :return: None
-    '''
-    conn = sqlite3.connect('tracked_items.db')
-    c = conn.cursor()
-    price = get_price(url)
-    c.execute('CREATE TABLE IF NOT EXISTS items (url text, price float, email text)')
-    c.execute('INSERT INTO items (url, price, email) VALUES (?, ? ,?)', (url, price, email))
-    conn.commit()
-    conn.close()
-
-def unsubscribe(email : 'String email') -> None:
-    '''
-    Drops all rows where email column = email parameter
-    :param email: String
-    :return: None
-    '''
-    conn = sqlite3.connect('tracked_items.db')
-    c = conn.cursor()
-    c.execute('DELETE FROM items WHERE email = ?', (email, ))
-    conn.commit()
-    conn.close()
-
-def get_urls(email : 'String email') -> 'String[]':
-    '''
-    Returns a list of URLs this email account is following
-    :param email: String
-    :return: String[]
-    '''
-    conn = sqlite3.connect('tracked_items.db')
-    c = conn.cursor()
-    c.execute('SELECT url FROM items WHERE email = ?', (email,))
-    conn.close()
-    return c.fetchall()
-
-'''
 Notify functions
 '''
-def notify(url : 'String url', name : 'String name', price : 'double price', email : 'String email') -> None :
+def notify(url : 'String url', name : 'String name', price : 'double price', recipient : 'String email') -> None :
     '''
     Email EMAIL with message 'Item at URL just dropped to PRICE dollars at XX:XX time on XX-XX-XXXX day'
     :return: None
@@ -165,7 +121,29 @@ def notify(url : 'String url', name : 'String name', price : 'double price', ema
     date = datetime.datetime.now().isoformat()[:10]
     time = datetime.datetime.now().isoformat()[11:19]
     content = ' '.join(['Item', name, 'at', url, 'just dropped to $', str(price), 'at', time, 'on', date])
+    send_email(content, recipient)
 
+def subscribe_notify(url : 'String url', name : 'String name', recipient : 'String email') -> None :
+    '''
+    Email the subscriber when he / she tracks a new item
+    :param url: String
+    :param name: String
+    :param recipient: String
+    :return: None
+    '''
+    content = 'You have signed up to receive notifications for ' + name + ' at ' + url
+    send_email(content, recipient)
+
+def unsubscribe_notify(recipient : 'String recipient') -> None :
+    '''
+    Email the person who is unsubscribing
+    :param recipient: String
+    :return: None
+    '''
+    content = 'Thank you for using the Amazon Price Drop Notifier Service. You have unsubscribed from the mailing list.'
+    send_email(content, recipient)
+
+def send_email(content, recipient):
     # Initialize SMTP and login to Gmail
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
@@ -177,13 +155,16 @@ def notify(url : 'String url', name : 'String name', price : 'double price', ema
     msg.set_content(content)
     msg['Subject'] = 'Amazon Price Drop'
     msg['From'] = 'AmazonPriceDropNotifier@gmail.com'
-    msg['To'] = email
+    msg['To'] = recipient
 
     # Send email and quit
     server.send_message(msg)
     server.quit()
 
-def strip(str : 'String str') -> 'String stripped_string':
+'''
+Utility functions
+'''
+def strip(str : 'String str') -> 'String stripped_string' :
     '''
     Returns a copy of the String argument with white space and line breaks removed
     :param str: String
