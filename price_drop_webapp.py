@@ -3,6 +3,7 @@ import sqlite3
 from notifier import *
 import os
 import re
+from typing import List
 
 app = Flask(__name__, template_folder= os.path.join(os.getcwd(), 'templates/'))
 
@@ -23,11 +24,11 @@ def handle_track_url_form():
             error = 'Invalid URL or EMail'
     return render_template('index.html', error = error)
 
-def valid_url(url : 'String url') -> bool:
+def valid_url(url : str) -> bool:
     print('Validating url ...')
     return 'amazon' in url
 
-def valid_email(email : 'String email') -> bool:
+def valid_email(email : str) -> bool:
     print('Validating email ...')
     # @source : https://www.scottbrady91.com/Email-Verification/Python-Email-Verification-Script
     match = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', email)
@@ -36,7 +37,7 @@ def valid_email(email : 'String email') -> bool:
         return False
     return True
 
-def track_url(url : 'String url', email : 'String email') -> None:
+def track_url(url : str, email : str) -> None:
     '''
     Adds a new row to the database, or if user is already tracking, show error message
     :param url: String
@@ -63,7 +64,7 @@ def handle_unsubscribe_form():
             error = 'Invalid email'
     return render_template('index.html', error = error)
 
-def unsubscribe(email : 'String email') -> None:
+def unsubscribe(email : str) -> None:
     '''
     Drops all rows where email column = email parameter
     :param email: String
@@ -76,7 +77,7 @@ def unsubscribe(email : 'String email') -> None:
     conn.commit()
     conn.close()
 
-def get_urls(email : 'String email') -> 'String[]':
+def get_urls(email : str) -> List[str]:
     '''
     Returns a list of URLs this email account is following
     :param email: String

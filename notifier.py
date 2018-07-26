@@ -10,6 +10,8 @@ import sqlite3
 import datetime
 import time
 
+from typing import List
+
 '''
 Main function
 '''
@@ -41,7 +43,7 @@ def update_and_notify() -> None :
         # Run every four hours
         time.sleep(14400)
 
-def get_price_and_item(url : 'String url') -> 'double price, String item_name' :
+def get_price_and_item(url : str) -> (float, str) :
     '''
     Scrapes and returns the price of a given amazon url
     :param url: String
@@ -73,16 +75,16 @@ def get_price_and_item(url : 'String url') -> 'double price, String item_name' :
         price = float(price[1:])
         return price, item_name
 
-def get_price(url : 'String url') -> 'double price' :
+def get_price(url : str) -> float :
     return get_price_and_item(url)[0]
 
-def get_name(url : 'String url') -> 'String name' :
+def get_name(url : str) -> str :
     return get_price_and_item(url)[1]
 
 '''
 Database handling
 '''
-def read_database() -> '{}[]' :
+def read_database() -> List[dict] :
     '''
     Reads from a database and returns list of dictionaries]
     :return: list of dictionaries[ {url : exampleURL, price : examplePrice, email : exampleEmail} ]
@@ -112,7 +114,7 @@ def update_table(url : 'amazon url', price : 'double price') -> None :
 '''
 Notify functions
 '''
-def notify(url : 'String url', name : 'String name', price : 'double price', recipient : 'String email') -> None :
+def notify(url : str, name : str, price : float, recipient : str) -> None :
     '''
     Email EMAIL with message 'Item at URL just dropped to PRICE dollars at XX:XX time on XX-XX-XXXX day'
     :return: None
@@ -123,7 +125,7 @@ def notify(url : 'String url', name : 'String name', price : 'double price', rec
     content = ' '.join(['Item', name, 'at', url, 'just dropped to $', str(price), 'at', time, 'on', date])
     send_email(content, recipient)
 
-def subscribe_notify(url : 'String url', name : 'String name', recipient : 'String email') -> None :
+def subscribe_notify(url : str, name : str, recipient : str) -> None :
     '''
     Email the subscriber when he / she tracks a new item
     :param url: String
@@ -134,7 +136,7 @@ def subscribe_notify(url : 'String url', name : 'String name', recipient : 'Stri
     content = 'You have signed up to receive notifications for ' + name + ' at ' + url
     send_email(content, recipient)
 
-def unsubscribe_notify(recipient : 'String recipient') -> None :
+def unsubscribe_notify(recipient : str) -> None :
     '''
     Email the person who is unsubscribing
     :param recipient: String
@@ -143,7 +145,7 @@ def unsubscribe_notify(recipient : 'String recipient') -> None :
     content = 'Thank you for using the Amazon Price Drop Notifier Service. You have unsubscribed from the mailing list.'
     send_email(content, recipient)
 
-def send_email(content, recipient):
+def send_email(content : str, recipient : str) -> None :
     # Initialize SMTP and login to Gmail
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
@@ -164,7 +166,7 @@ def send_email(content, recipient):
 '''
 Utility functions
 '''
-def strip(str : 'String str') -> 'String stripped_string' :
+def strip(str : str) -> str :
     '''
     Returns a copy of the String argument with white space and line breaks removed
     :param str: String
