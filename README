@@ -1,3 +1,4 @@
-Simple web application using Bootstrap to make things pretty in the front end and Flask to run Python in the back end.
+# Amazon Price Drop Notifier
 
-This tool is used to track items you want to buy on amazon.com and email you when its price goes down.
+This project is a web application that allows users to track Amazon URLs and receive an email when the price drops.
+It uses Bootstrap to format the web page and the Flask web framework to run Python in the back end.
