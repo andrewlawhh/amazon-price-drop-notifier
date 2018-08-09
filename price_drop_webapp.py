@@ -25,8 +25,9 @@ def handle_track_url_form():
             track_url(url, email)
         else:
             error = 'Invalid URL or email'
-    return render_template('index.html', error = error)
+    return render_template('error.html') if error else render_template('index.html', error = error)
 
+# Todo - url might not have amazon in it!
 def valid_url(url : str) -> bool:
     print('Validating url ...')
     return 'amazon' in url
@@ -69,7 +70,7 @@ def handle_unsubscribe_form():
             notifier.unsubscribe_notify(email)
         else:
             error = 'Invalid email'
-    return render_template('index.html', error = error)
+    return render_template('error.html') if error else render_template('index.html', error = error)
 
 def unsubscribe(email : str) -> None:
     '''
@@ -119,7 +120,7 @@ def handle_untrack_form():
             untrack(url, email)
         else:
             error = 'Invalid URL or email'
-    return render_template('index.html', error = error)
+    return render_template('error.html') if error else render_template('index.html', error = error)
 
 def untrack(url : str, email : str) -> None:
     '''
