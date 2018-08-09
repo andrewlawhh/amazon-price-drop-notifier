@@ -7,7 +7,7 @@ It uses Bootstrap to format the web page and the Flask web framework to run Pyth
 ### Using the tool
 The tool simply takes URL and email parameters through forms in the browser, which get sent to the script via HTTP to
 Flask, which is listening on port 5000 by default. Data is then saved in a SQLite database. Every four hours, Python
-checks Amazon using requests and beautifulSoup at the saved URLs in the database and emails users who are tracking the
+checks Amazon using requests and beautifulSoup at the saved URLs in the database and emails users who are tracking an
 item if the item's price has fallen.
 
 ### Functionality
