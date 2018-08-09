@@ -21,7 +21,6 @@ def update_and_notify() -> None :
         get the price
         if it is different, update the dictionary
             if it is lower than it was before, email the user
-    :return: None
     '''
     while True:
         url_price_email_list = read_database()
@@ -44,11 +43,7 @@ def update_and_notify() -> None :
         time.sleep(14400)
 
 def get_price_and_item(url : str) -> (float, str) :
-    '''
-    Scrapes and returns the price of a given amazon url
-    :param url: String
-    :return: Float, String
-    '''
+    # Scrapes and returns the price of a given amazon url
     # Set up web scraper
     page = requests.get(url)
     html = page.content
@@ -85,10 +80,7 @@ def get_name(url : str) -> str :
 Database handling
 '''
 def read_database() -> List[dict] :
-    '''
-    Reads from a database and returns list of dictionaries]
-    :return: list of dictionaries[ {url : exampleURL, price : examplePrice, email : exampleEmail} ]
-    '''
+    # Reads from a database and returns list of dictionaries
     database_list = []
     conn = sqlite3.connect('tracked_items.db')
     c = conn.cursor()
@@ -97,13 +89,8 @@ def read_database() -> List[dict] :
     conn.close()
     return database_list
 
-def update_table(url : 'amazon url', price : 'double price') -> None :
-    '''
-    Updates database with the new price where url column = url parameter
-    :param url: String
-    :param price: double
-    :return: None
-    '''
+def update_table(url : str, price : float) -> None :
+    # Updates database with the new price where url column = url parameter
     conn = sqlite3.connect('tracked_items.db')
     c = conn.cursor()
     c.execute('UPDATE items SET price = ? WHERE url = ?', (price, url))
@@ -115,10 +102,7 @@ def update_table(url : 'amazon url', price : 'double price') -> None :
 Notify functions
 '''
 def notify(url : str, name : str, price : float, recipient : str) -> None :
-    '''
-    Email EMAIL with message 'Item at URL just dropped to PRICE dollars at XX:XX time on XX-XX-XXXX day'
-    :return: None
-    '''
+    # Email the recipient notifying him / her of a price drop
     # Format date and time for the email message
     date = datetime.datetime.now().isoformat()[:10]
     time = datetime.datetime.now().isoformat()[11:19]
@@ -126,26 +110,17 @@ def notify(url : str, name : str, price : float, recipient : str) -> None :
     send_email(content, recipient)
 
 def subscribe_notify(url : str, name : str, recipient : str) -> None :
-    '''
-    Email the subscriber when he / she tracks a new item
-    :param url: String
-    :param name: String
-    :param recipient: String
-    :return: None
-    '''
+   # Email the person when he / she tracks a new item
     content = 'You have signed up to receive notifications for ' + name + ' at ' + url
     send_email(content, recipient)
 
 def unsubscribe_notify(recipient : str) -> None :
-    '''
-    Email the person who is unsubscribing
-    :param recipient: String
-    :return: None
-    '''
+    # Email the person who is unsubscribing
     content = 'Thank you for using the Amazon Price Drop Notifier Service. You have unsubscribed from the mailing list.'
     send_email(content, recipient)
 
 def send_email(content : str, recipient : str) -> None :
+    # Send email to recipient with body as content
     # Initialize SMTP and login to Gmail
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()

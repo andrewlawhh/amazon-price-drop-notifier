@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import sqlite3
-from notifier import *
+import notifier
 import os
 import re
 from typing import List
@@ -11,6 +11,9 @@ app = Flask(__name__, template_folder= os.path.join(os.getcwd(), 'templates/'))
 def index():
     return render_template('index.html')
 
+'''
+Track Amazon Item Functions
+'''
 @app.route('/track_url', methods = ['POST', 'GET'])
 def handle_track_url_form():
     error = None
@@ -21,7 +24,7 @@ def handle_track_url_form():
             print('Form handling successful')
             track_url(url, email)
         else:
-            error = 'Invalid URL or EMail'
+            error = 'Invalid URL or email'
     return render_template('index.html', error = error)
 
 def valid_url(url : str) -> bool:
@@ -44,14 +47,18 @@ def track_url(url : str, email : str) -> None:
     :return: None
     '''
     print('Track URL form was submitted')
-    subscribe_notify(url, get_name(url), email)
+    notifier.subscribe_notify(url, notifier.get_name(url), email)
     conn = sqlite3.connect('tracked_items.db')
     c = conn.cursor()
-    price = get_price(url)
+    price = notifier.get_price(url)
     c.execute('INSERT INTO items (url, price, email) VALUES (?, ? ,?)', (url, price, email))
     conn.commit()
     conn.close()
 
+
+'''
+Unsubscribe from mailing list functions
+'''
 @app.route('/unsubscribe', methods = ['POST', 'GET'])
 def handle_unsubscribe_form():
     error = None
@@ -59,7 +66,7 @@ def handle_unsubscribe_form():
         email = request.form['email']
         if valid_email(email):
             unsubscribe(email)
-            unsubscribe_notify(email)
+            notifier.unsubscribe_notify(email)
         else:
             error = 'Invalid email'
     return render_template('index.html', error = error)
@@ -77,17 +84,54 @@ def unsubscribe(email : str) -> None:
     conn.commit()
     conn.close()
 
-def get_urls(email : str) -> List[str]:
+
+'''
+Get all URLs user is tracking functions
+'''
+@app.route('/user_items', methods = ['POST', 'GET'])
+def handle_get_urls():
+    pass
+
+def get_urls(email : str) -> List[tuple]:
     '''
     Returns a list of URLs this email account is following
     :param email: String
-    :return: String[]
+    :return: Tuple[]
+    The returned list contains tuples formatted like this -> (URL, Price)
     '''
     conn = sqlite3.connect('tracked_items.db')
     c = conn.cursor()
-    c.execute('SELECT url FROM items WHERE email = ?', (email,))
+    c.execute('SELECT url, price FROM items WHERE email = ?', (email,))
     conn.close()
     return c.fetchall()
+
+'''
+Stop tracking an item functions
+'''
+@app.route('/untrack', methods = ['POST', 'GET'])
+def handle_untrack_form():
+    error = None
+    if request.method == 'POST':
+        url = request.form['url']
+        email = request.form['email']
+        if valid_url(url) and valid_email(email):
+            print('Form handling successful')
+            untrack(url, email)
+        else:
+            error = 'Invalid URL or email'
+    return render_template('index.html', error = error)
+
+def untrack(url : str, email : str) -> None:
+    '''
+    Untracks a URL for specified email
+    :param email: str
+    :param url: str
+    :return: None
+    '''
+    conn = sqlite3.connect('tracked_items.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM items WHERE email = ? and url = ?', (email, url))
+    conn.close()
 
 if __name__ == '__main__':
     app.run(debug = True)

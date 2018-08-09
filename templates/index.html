@@ -21,19 +21,18 @@
                 </h1>
             </div>
         </div>
-
             <p align = "center">
                 Track an item you want to buy on Amazon by using the form below.
                 You'll receive an email when the price goes down.
             </p>
     </div>
 
-    <div class = "container-fluid">
+    <div class = "container">
         <div class = "row">
-            <div class = col-sm-6 id = "track_url" >
+            <div class = col-sm-12 id = "track_url" >
                 <form action = "/track_url" method = "post" align = "center" autocomplete = off>
                     <h4>
-                        <i>Track an Amazon URL</i>
+                        <i>Track an Item</i>
                     </h4>
                     URL
                     <br>
@@ -47,11 +46,52 @@
                     <input type = "submit">
                 </form>
             </div>
+        </div>
+    </div>
 
-            <div class = col-sm-6 id = "unsubscribe">
+    <div class = "container">
+        <div class = "row">
+            <div class = col-sm-12 id = "user_items">
+                <form action = "/user_items" method = "post" align = "center" autocomplete = off>
+                    <h4>
+                        <i>Your Tracked Items</i>
+                    </h4>
+                    Email
+                    <br>
+                    <input title = "email" type = "text" name = "email">
+                    <br>
+                    <br>
+                    <input type = "submit">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class = "container">
+        <div class = col-sm-12 id = "untrack">
+                <form action = "/untrack" method = "post" align = "center" autocomplete = off>
+                    <h4>
+                        <i>Untrack an Item</i>
+                    </h4>
+                    URL
+                    <br>
+                    <input title = "url" type = "text" name = "url">
+                    <br>
+                    Email
+                    <br>
+                    <input title = "email" type= "text" name = "email">
+                    <br>
+                    <br>
+                    <input type = "submit">
+                </form>
+            </div>
+    </div>
+
+    <div class = "container">
+                    <div class = col-sm-12 id = "unsubscribe">
                 <form action = "/unsubscribe" method = "post" align = "center" autocomplete = off>
                     <h4>
-                        <i>Remove your email from this mailing list</i>
+                        <i>Remove your Email from this Mailing List</i>
                     </h4>
                     Email
                     <br>
@@ -61,7 +101,6 @@
                     <input type = "submit">
                 </form>
             </div>
-        </div>
     </div>
 
 </body>

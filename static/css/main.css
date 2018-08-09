@@ -1,20 +1,15 @@
-#track_url {
-    background-color: orange;
-    border : 2px solid black;
-}
-
-#unsubscribe {
+#track_url, #unsubscribe, #user_items, #untrack{
     background-color: orange;
     border : 2px solid black;
 }
 
 .row {
-    padding : 1.5rem;
+    padding : 1rem;
 }
 .container {
-    padding : 3rem;
+    padding : 1rem;
 }
 
 form {
-    padding : 10px;
+    padding : 1rem;
 }
