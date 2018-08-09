@@ -3,6 +3,11 @@
     border : 2px solid black;
 }
 
+.col-centered {
+    float : none;
+    margin : 0 auto;
+}
+
 .row {
     padding : 1rem;
 }

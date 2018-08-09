@@ -111,12 +111,17 @@ def notify(url : str, name : str, price : float, recipient : str) -> None :
 
 def subscribe_notify(url : str, name : str, recipient : str) -> None :
    # Email the person when he / she tracks a new item
-    content = 'You have signed up to receive notifications for ' + name + ' at ' + url
+    price = get_price(url)
+    content = ' '.join(('You have signed up to receive notifications for', name, 'at', url, '.', 'The price is currently', str(price)))
     send_email(content, recipient)
 
 def unsubscribe_notify(recipient : str) -> None :
     # Email the person who is unsubscribing
     content = 'Thank you for using the Amazon Price Drop Notifier Service. You have unsubscribed from the mailing list.'
+    send_email(content, recipient)
+
+def untrack_notify(url : str, name : str, recipient : str) -> None :
+    content = ' '.join(('You have untracked', name, 'at', url))
     send_email(content, recipient)
 
 def send_email(content : str, recipient : str) -> None :
